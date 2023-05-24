@@ -1,11 +1,83 @@
-import cheerio from "cheerio";
-import axios from "axios";
+const axios = require("axios");
 
-export async function isLive(username) {
-  let response = await axios.get(`https://twitchtracker.com/${username}`);
-  const $ = cheerio.load(response.data);
+// streamer control
+async function isStreamerOnline(username) {
+  try {
+    const response = await axios.get(
+      `https://api.twitch.tv/helix/streams?user_login=${username}`,
+      {
+        headers: {
+          "Client-ID": process.env.TWITCH_CLIENT_ID,
+          Authorization: process.env.TWITCH_ACCESS_TOKEN,
+        },
+      }
+    );
 
-  const card = $(".live-indicator-container span").text();
-  if (card.trim() === "LIVE") return true;
-  else return false;
+    const { data } = response.data;
+    if (data.length > 0) {
+      console.log(`${username} is currently live streaming!`);
+      // Burada istediğiniz işlemleri yapabilirsiniz
+      return `Şu anda ${username} Twitch'te yayında! Başlığı: ${data[0].title} - ${data[0].viewer_count} izleyici.\nhttps://twitch.tv/${username}`;
+    } else {
+      console.log(`${username} is not live streaming right now.`);
+      return `${username} şu anda yayında değil.`;
+    }
+    return data;
+  } catch (error) {
+    console.log("Hata:", error);
+  }
 }
+
+// streamer notifications
+
+const liveStreamers = new Set();
+
+async function checkTwitchStreams(client) {
+  const twitchStreamers = [
+    "hype",
+    "jahrein",
+    "gugucan",
+    "videoyun",
+    "levo",
+    "cigdemt",
+    "elraenn",
+  ];
+  for (const streamer of twitchStreamers) {
+    try {
+      const response = await axios.get(
+        `https://api.twitch.tv/helix/streams?user_login=${streamer}`,
+        {
+          headers: {
+            "Client-ID": process.env.TWITCH_CLIENT_ID,
+            Authorization: process.env.TWITCH_ACCESS_TOKEN,
+          },
+        }
+      );
+
+      const data = response.data;
+
+      if (data.data.length > 0) {
+        // Yayın açık ise belirlediğiniz kanala bir mesaj gönderin
+        const channelID = process.env.CHANNEL_ID;
+        const channel = client.channels.cache.get(channelID);
+        if (!liveStreamers.has(streamer)) {
+          liveStreamers.add(streamer);
+          channel.send(
+            `${streamer} Twitch'te yayına başladı! Başlık: ${data.data[0].title} - ${data.data[0].viewer_count} izleyici.\nhttps://twitch.tv/${streamer}`
+          );
+        }
+      } else {
+        // Yayın kapalı ise setten silin
+        liveStreamers.delete(streamer);
+      }
+    } catch (error) {
+      console.error(`Twitch API hatası: ${error.message}`);
+    }
+  }
+}
+
+// export
+module.exports = {
+  isStreamerOnline,
+  checkTwitchStreams,
+};

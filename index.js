@@ -1,31 +1,32 @@
-import { Client, EmbedBuilder, GatewayIntentBits } from "discord.js";
-import dotenv from "dotenv";
-import { getDiscountList } from "./src/indirim.js";
-import { isLive } from "./src/twitch.js";
-import { getGolvarList, getStreamUrl } from "./src/yayin.js";
+const Discord = require("discord.js");
+const axios = require("axios");
+const dotenv = require("dotenv");
+
+const { isStreamerOnline, checkTwitchStreams } = require("./src/twitch");
 
 dotenv.config();
-const prefix = process.env.PREFIX;
 
-const client = new Client({
+const client = new Discord.Client({
   intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent,
+    Discord.GatewayIntentBits.Guilds,
+    Discord.GatewayIntentBits.GuildMessages,
+    Discord.GatewayIntentBits.MessageContent,
   ],
 });
 
-client.login(process.env.TOKEN);
-
 client.on("ready", () => {
-  console.log(`Logged in as ${client.user.tag}!`);
+  console.log(`Bot olarak giriş yapıldı: ${client.user.tag}`);
+
+  // Belirli aralıklarla Twitch API'ye istek göndererek yayınları kontrol etmek için bir zamanlayıcı ayarlayın
+  setInterval(() => {
+    checkTwitchStreams(client);
+  }, 60000); // Her dakika kontrol etmek için 60000 milisaniye (60 saniye) kullanıyoruz
 });
 
 client.on("messageCreate", (msg) => {
-  if (msg.author.bot) return;
-
   // selama cevap verme
-  if (msg.content.trim().toLowerCase() === "sa") {
+  let selam = ["selam ", "sa ", "selamın aleyküm", "selamın aleykum"];
+  if (selam.some((word) => msg.content.toLowerCase().includes(word))) {
     if (msg.author.id === process.env.ME_ID) {
       msg.reply(`as Aşkım benim. Seni çok seviyorum :heart:. Hizmetindeyim.`);
     } else {
@@ -33,65 +34,13 @@ client.on("messageCreate", (msg) => {
     }
   }
 
-  if (!msg.content.startsWith(prefix)) return;
-
-  // komutlar
-  let message = msg.content.trim().toLowerCase();
-  if (message.startsWith(prefix + "açtımı")) {
-    const username = message.split(" ")[1];
-    msg.reply(`hemen bakıyorum cnm`);
-    isLive(username)
-      .then((x) => {
-        msg.reply(`${x ? "Yayında cnm" : "Yayında değil cnm"}`);
-      })
-      .catch((err) => {
-        console.log(err.message);
-        msg.reply(`bir hata oluştu cnm`);
-      });
-  }
-
-  if (message.startsWith(prefix + "golvar")) {
-    const channel = message.split(" ")[1];
-    msg.reply(`hemen bakıyorum cnm`);
-    if (channel !== "list") {
-      getStreamUrl(channel)
-        .then((data) => {
-          msg.reply("dede");
-        })
-        .catch((err) => {
-          console.log(err.message);
-          msg.reply(`bir hata oluştu cnm`);
-        });
-    } else {
-      getGolvarList()
-        .then((data) => {
-          console.log(data.length);
-          let text = "Lütfen Birini seçin (*golvar 5)";
-          text += data.map((x, index) => {
-            return "\n" + index + " - " + x.title;
-          });
-          msg.reply(text.toString());
-        })
-        .catch((err) => {
-          console.log(err.message);
-          msg.reply(`bir hata oluştu cnm`);
-        });
-    }
-  }
-
-  if (message === prefix + "indirim") {
-    getDiscountList().then((list) => {
-      let text = list.map((x, index) => {
-        return `\n[${x.title}](${x.link}) - ${x.date}  ${
-          x.type && " - (" + x.type + ")"
-        }`;
-      });
-      const embed = new EmbedBuilder()
-        .setColor(0x0099ff)
-        .setTitle("İndirimler")
-        .setDescription(text.toString())
-        .setTimestamp();
-      msg.channel.send({ embeds: [embed] });
+  // twitch streamer kontrolü
+  if (msg.content.startsWith("!streamer")) {
+    const username = msg.content.split(" ")[1];
+    isStreamerOnline(username).then((res) => {
+      msg.reply(res);
     });
   }
 });
+
+client.login(process.env.TOKEN); // Discord bot tokenınızı buraya girin
