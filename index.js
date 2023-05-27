@@ -1,8 +1,17 @@
 const Discord = require("discord.js");
 const axios = require("axios");
 const dotenv = require("dotenv");
+const { Configuration, OpenAIApi } = require("openai");
+
+// OpenAI Chat API'ye bağlanmak için bir istemci oluşturun
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+  organization: process.env.OPENAI_ORG_ID,
+});
+const openai = new OpenAIApi(configuration);
 
 const { isStreamerOnline, checkTwitchStreams } = require("./src/twitch");
+const { askGPT } = require("./src/chatgpt");
 
 dotenv.config();
 
@@ -40,6 +49,14 @@ client.on("messageCreate", (msg) => {
     isStreamerOnline(username).then((res) => {
       msg.reply(res);
     });
+  }
+
+  // Botun kendisini etiketlendiği mesajları kontrol et
+  if (msg.mentions.has(client.user)) {
+    const content = msg.content.replace(`<@!${client.user.id}>`, "").trim();
+    if (content.length > 0) {
+      askGPT(content, msg, openai);
+    }
   }
 });
 
