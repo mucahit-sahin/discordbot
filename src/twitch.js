@@ -30,18 +30,12 @@ async function isStreamerOnline(username) {
 
 // streamer notifications
 
-const liveStreamers = new Set();
+async function checkTwitchStreams(client, db) {
+  // Replit veritabanından canlı yayın yapan kullanıcıları alın
+  const liveStreamers = new Set(await db.get("liveStreamers")) || new Set();
+  // Replit veritabanından takip edilen kullanıcıları alın
+  const twitchStreamers = Array.from(await db.get("twitchStreamers")) || [];
 
-async function checkTwitchStreams(client) {
-  const twitchStreamers = [
-    "hype",
-    "jahrein",
-    "gugucan",
-    "videoyun",
-    "levo",
-    "cigdemt",
-    "elraenn",
-  ];
   for (const streamer of twitchStreamers) {
     try {
       const response = await axios.get(
@@ -70,6 +64,8 @@ async function checkTwitchStreams(client) {
         // Yayın kapalı ise setten silin
         liveStreamers.delete(streamer);
       }
+      // Veritabanını güncelleyin
+      await db.set("liveStreamers", [...liveStreamers]);
     } catch (error) {
       console.error(`Twitch API hatası: ${error.message}`);
     }
