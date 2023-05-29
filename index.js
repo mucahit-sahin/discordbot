@@ -131,6 +131,43 @@ client.on("messageCreate", (msg) => {
       askGPT(content, msg, openai);
     }
   }
+
+  // Botta kullanılan komutların listelenip ve komutların açıklanması (Embed mesajı)
+  if (msg.content.startsWith("!help")) {
+    const embed = new Discord.EmbedBuilder()
+      .setTitle("Komutlar")
+      .addFields(
+        {
+          name: "!streamer <username>",
+          value:
+            "Twitch'te yayın yapan bir streamerin yayında olup olmadığını kontrol eder.",
+        },
+        {
+          name: "!addstreamer <username>",
+          value: "Twitch'te yayın yapan bir streameri takip edilenlere ekler.",
+        },
+        {
+          name: "!removestreamer <username>",
+          value:
+            "Twitch'te yayın yapan bir streameri takip edilenlerden siler.",
+        },
+        {
+          name: "!liststreamers",
+          value: "Twitch'te yayın yapan streamerları listeler.",
+        },
+        {
+          name: "!listonline",
+          value: "Twitch'te yayında olan streamerları listeler.",
+        },
+        {
+          name: "!help",
+          value: "Komutları listeler.",
+        }
+      )
+      .setColor(0x7289da)
+      .setTimestamp(new Date());
+    msg.channel.send({ embeds: [embed] });
+  }
 });
 
 client.login(process.env.TOKEN); // Discord bot tokenınızı buraya girin
