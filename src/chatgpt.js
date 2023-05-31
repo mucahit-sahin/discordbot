@@ -1,13 +1,17 @@
-async function askGPT(question, message, openai) {
+async function askGPT(question, openai) {
   try {
-    const gptResponse = await openai.createCompletion({
-      model: "text-davinci-003",
-      prompt: "Say this is a test",
-      max_tokens: 7,
-      temperature: 0,
+    console.log("ChatGPT ile soru soruldu:", question);
+    const gptResponse = await openai.createChatCompletion({
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "system",
+          content: "You are a helpful assistant who responds succinctly",
+        },
+        { role: "user", content: question },
+      ],
     });
-    message.reply(`${gptResponse.data.choices[0].text}`);
-    return;
+    return gptResponse.data.choices[0].text;
   } catch (error) {
     console.error("ChatGPT ile bir hata oluştu:", error);
   }

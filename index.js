@@ -34,10 +34,13 @@ client.on("ready", () => {
   // Belirli aralıklarla Twitch API'ye istek göndererek yayınları kontrol etmek için bir zamanlayıcı ayarlayın
   setInterval(() => {
     checkTwitchStreams(client, db);
+    requestWebSite();
   }, 60000); // Her dakika kontrol etmek için 60000 milisaniye (60 saniye) kullanıyoruz
 });
 
-client.on("messageCreate", (msg) => {
+client.on("messageCreate", async (msg) => {
+  if (msg.author.bot) return;
+
   // selama cevap verme
   let selam = ["selam ", "sa ", "selamın aleyküm", "selamın aleykum"];
   if (selam.some((word) => msg.content.toLowerCase().includes(word))) {
@@ -124,12 +127,22 @@ client.on("messageCreate", (msg) => {
     });
   }
 
-  // Botun kendisini etiketlendiği mesajları kontrol et
-  if (msg.mentions.has(client.user)) {
-    const content = msg.content.replace(`<@!${client.user.id}>`, "").trim();
-    if (content.length > 0) {
-      askGPT(content, msg, openai);
+  // GPT-3 ile sohbet etmek
+  if (msg.content.startsWith("!chat")) {
+    const message = msg.content.split("!chat")[1];
+    if (!message) {
+      msg.reply("Bir mesaj belirtin.");
+      return;
     }
+    const response = await openai.createChatCompletion({
+      model: "davinci",
+      prompt: message,
+      maxTokens: 1024,
+      n: 1,
+      stop: null,
+      temperature: 0.5,
+    });
+    msg.reply(response.data.choices[0].text);
   }
 
   // Botta kullanılan komutların listelenip ve komutların açıklanması (Embed mesajı)
@@ -171,3 +184,8 @@ client.on("messageCreate", (msg) => {
 });
 
 client.login(process.env.TOKEN); // Discord bot tokenınızı buraya girin
+
+async function requestWebSite(url) {
+  const response = await axios.get("https://discord-bot--scaletta865.repl.co/");
+  return response.data;
+}
