@@ -13,6 +13,7 @@ const openai = new OpenAIApi(configuration);
 
 const { isStreamerOnline, checkTwitchStreams } = require("./src/twitch");
 const { askGPT } = require("./src/chatgpt");
+const { getCurrencies } = require("./src/currency");
 
 dotenv.config();
 
@@ -145,6 +146,22 @@ client.on("messageCreate", async (msg) => {
     msg.reply(response.data.choices[0].text);
   }
 
+  // Döviz kurlarını listelemek (Embed ile)
+  if (msg.content.startsWith("!döviz")) {
+    const currencies = await getCurrencies();
+    const embed = new Discord.EmbedBuilder()
+      .setTitle("Döviz Kurları (TL)")
+      .addFields(
+        currencies.map((currency) => ({
+          name: currency.name,
+          value: "Alış: " + currency.buying + "\t\t Satış: " + currency.selling,
+        }))
+      )
+      .setFooter({ text: "Kaynak: https://bigpara.hurriyet.com.tr/doviz/" })
+      .setTimestamp(new Date());
+    msg.reply({ embeds: [embed] });
+  }
+
   // Botta kullanılan komutların listelenip ve komutların açıklanması (Embed mesajı)
   if (msg.content.startsWith("!help")) {
     const embed = new Discord.EmbedBuilder()
@@ -171,6 +188,10 @@ client.on("messageCreate", async (msg) => {
         {
           name: "!listonline",
           value: "Twitch'te yayında olan streamerları listeler.",
+        },
+        {
+          name: "!döviz",
+          value: "Döviz kurlarını listeler.",
         },
         {
           name: "!help",
