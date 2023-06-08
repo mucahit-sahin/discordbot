@@ -14,6 +14,7 @@ const openai = new OpenAIApi(configuration);
 const { isStreamerOnline, checkTwitchStreams } = require("./src/twitch");
 const { askGPT } = require("./src/chatgpt");
 const { getCurrencies } = require("./src/currency");
+const { getDiscounts } = require("./src/indirim");
 
 dotenv.config();
 
@@ -162,11 +163,33 @@ client.on("messageCreate", async (msg) => {
     msg.reply({ embeds: [embed] });
   }
 
+  // İndirimleri listelemek (Embed ile)
+  if (msg.content.startsWith("!indirim")) {
+    const discounts = await getDiscounts();
+    const embed = new Discord.EmbedBuilder()
+      .setTitle("İndirimler")
+      .addFields(
+        discounts.map((discount) => ({
+          name: discount.title,
+          value: `[Linke git](${discount.link})` + " - " + discount.date,
+        }))
+      )
+      .setFooter({
+        text: "Kaynak: https://www.technopat.net/sosyal/bolum/indirim-koesesi.257/",
+      })
+      .setTimestamp(new Date());
+    msg.reply({ embeds: [embed] });
+  }
+
   // Botta kullanılan komutların listelenip ve komutların açıklanması (Embed mesajı)
   if (msg.content.startsWith("!help")) {
     const embed = new Discord.EmbedBuilder()
       .setTitle("Komutlar")
       .addFields(
+        {
+          name: "!indirim",
+          value: "Teknoloji ürünlerindeki indirimleri listeler.",
+        },
         {
           name: "!streamer <username>",
           value:
