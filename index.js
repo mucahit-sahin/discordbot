@@ -14,7 +14,7 @@ const openai = new OpenAIApi(configuration);
 const { isStreamerOnline, checkTwitchStreams } = require("./src/twitch");
 const { askGPT } = require("./src/chatgpt");
 const { getCurrencies } = require("./src/currency");
-const { getDiscounts } = require("./src/indirim");
+const { getDiscounts, checkNewDiscount } = require("./src/indirim");
 
 dotenv.config();
 
@@ -35,8 +35,9 @@ client.on("ready", () => {
 
   // Belirli aralıklarla Twitch API'ye istek göndererek yayınları kontrol etmek için bir zamanlayıcı ayarlayın
   setInterval(() => {
-    checkTwitchStreams(client, db);
     requestWebSite();
+    checkTwitchStreams(client, db);
+    checkNewDiscount(client, db);
   }, 60000); // Her dakika kontrol etmek için 60000 milisaniye (60 saniye) kullanıyoruz
 });
 
@@ -181,14 +182,46 @@ client.on("messageCreate", async (msg) => {
     msg.reply({ embeds: [embed] });
   }
 
+  // İndirim bildirimlerini açmak veya kapamak (sadece benim için)
+  if (msg.content.startsWith("!bildirimindirim")) {
+    if (msg.author.id !== process.env.ME_ID) {
+      msg.reply("Bu komutu kullanma izniniz yok.");
+      return;
+    }
+    const status = msg.content.split(" ")[1];
+    if (!status) {
+      msg.reply("Bir durum belirtin.");
+      return;
+    }
+    if (status === "on") {
+      db.set("discountsNotifications", true).then(() => {
+        msg.reply("İndirim bildirimleri açıldı.");
+      });
+    } else if (status === "off") {
+      db.set("discountsNotifications", false).then(() => {
+        msg.reply("İndirim bildirimleri kapatıldı.");
+      });
+    } else {
+      msg.reply("Geçersiz durum.");
+    }
+  }
+
   // Botta kullanılan komutların listelenip ve komutların açıklanması (Embed mesajı)
   if (msg.content.startsWith("!help")) {
     const embed = new Discord.EmbedBuilder()
       .setTitle("Komutlar")
       .addFields(
         {
+          name: "!help",
+          value: "Komutları listeler.",
+        },
+        {
           name: "!indirim",
           value: "Teknoloji ürünlerindeki indirimleri listeler.",
+        },
+        {
+          name: "!bildirimindirim <on/off>",
+          value: "İndirim bildirimlerini açar veya kapatır.",
         },
         {
           name: "!streamer <username>",
@@ -215,10 +248,6 @@ client.on("messageCreate", async (msg) => {
         {
           name: "!döviz",
           value: "Döviz kurlarını listeler.",
-        },
-        {
-          name: "!help",
-          value: "Komutları listeler.",
         }
       )
       .setColor(0x7289da)

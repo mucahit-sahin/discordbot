@@ -1,9 +1,11 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
+const { EmbedBuilder } = require("discord.js");
 
 const url =
   "https://www.technopat.net/sosyal/bolum/indirim-koesesi.257/?order=post_date&direction=desc";
 
+// indirimleri getir
 async function getDiscounts() {
   try {
     const response = await axios.get(url);
@@ -23,12 +25,72 @@ async function getDiscounts() {
       };
       discounts.push(discount);
     });
+    // Birinci elemanı sil
+    discounts.shift();
     return discounts;
   } catch (error) {
     console.error(error);
   }
 }
 
+// yeni bir indirim var mı kontrol et varsa döndür
+async function checkNewDiscount(client, db) {
+  const discounts = await getDiscounts();
+
+  // Son indirimi Replit veritabanından çek
+  const lastDiscount = await db.get("lastDiscount");
+
+  // Eğer veritabanında indirim yoksa veritabanına kaydet
+  if (!lastDiscount) {
+    await db.set("lastDiscount", discounts[0]);
+    return;
+  }
+
+  // Eğer veritabanındaki indirim, indirimlerde yoksa
+  if (!discounts.find((discount) => discount.link === lastDiscount.link)) {
+    // Veritabanındaki indirimi sil
+    await db.delete("lastDiscount");
+    return;
+  }
+
+  // Son indirim ile yeni indirimi karşılaştır
+  if (lastDiscount.link !== discounts[0].link) {
+    // Eğer yeni indirim varsa veritabanına kaydet
+    await db.set("lastDiscount", discounts[0]);
+
+    // Yeni eklenen indirimleri döndür (yani baştan son indirime kadar olan indirimler )
+    const newDiscounts = [];
+    for (let i = 0; i < discounts.length; i++) {
+      if (discounts[i].link === lastDiscount.link) break;
+      newDiscounts.push(discounts[i]);
+    }
+
+    // İndirim bildirimleri açık değilse
+    if (!(await db.get("discountsNotifications"))) return;
+
+    // Eğer yeni indirim varsa
+    if (newDiscounts.length > 0) {
+      // Yeni indirimleri mesaj olarak gönder (Embed mesajı)
+      const channel = client.channels.cache.get(process.env.CHANNEL_ID);
+      const embed = new EmbedBuilder()
+        .setTitle("Yeni indirimler")
+        .addFields(
+          ...newDiscounts.map((discount) => ({
+            name: discount.title,
+            value: `[Linke git](${discount.link})` + " - " + discount.date,
+          }))
+        )
+        .setFooter({
+          text: "Kaynak: https://www.technopat.net/sosyal/bolum/indirim-koesesi.257/",
+        })
+        .setTimestamp(new Date());
+
+      channel.send({ embeds: [embed] });
+    }
+  }
+}
+
 module.exports = {
   getDiscounts,
+  checkNewDiscount,
 };
