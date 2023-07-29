@@ -35,6 +35,13 @@ async function getDiscounts() {
 
 // yeni bir indirim var mı kontrol et varsa döndür
 async function checkNewDiscount(client, db) {
+  // Bildirim ayarlarını veritabanından çek
+  const notificationSettings = await db.get("notifications");
+
+  // Eğer bildirim ayarları yoksa veya bildirimler kapalıysa
+  if (!notificationSettings || !notificationSettings.indirim.value) return;
+
+  // İndirimleri çek
   const discounts = await getDiscounts();
 
   // Son indirimi Replit veritabanından çek
@@ -65,13 +72,14 @@ async function checkNewDiscount(client, db) {
       newDiscounts.push(discounts[i]);
     }
 
-    // İndirim bildirimleri açık değilse
-    if (!(await db.get("discountsNotifications"))) return;
-
-    // Eğer yeni indirim varsa
+    // Eğer yeni indirim varsa Yeni indirimleri mesaj olarak gönder (Embed mesajı)
     if (newDiscounts.length > 0) {
-      // Yeni indirimleri mesaj olarak gönder (Embed mesajı)
-      const channel = client.channels.cache.get(process.env.CHANNEL_ID);
+      // Bildirim kanalını çek
+      const channel = await client.channels
+        .fetch(notificationSettings.indirim.channelId)
+        .catch(console.error);
+      if (!channel) return;
+
       const embed = new EmbedBuilder()
         .setTitle("Yeni indirimler")
         .addFields(
