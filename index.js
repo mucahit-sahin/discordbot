@@ -15,6 +15,7 @@ const { isStreamerOnline, checkTwitchStreams } = require("./src/twitch");
 const { askGPT } = require("./src/chatgpt");
 const { getCurrencies } = require("./src/currency");
 const { getDiscounts, checkNewDiscount } = require("./src/indirim");
+const { getInstagramLinks } = require("./src/instagram");
 
 dotenv.config();
 
@@ -53,6 +54,9 @@ client.on("messageCreate", async (msg) => {
       msg.reply(`as ${msg.author}`);
     }
   }
+
+  // instagram linklerini alıp, "instagram" yazısını "ddinstagram" olarak değiştirir
+  getInstagramLinks(msg);
 
   // twitch streamer kontrolü
   if (msg.content.startsWith("!streamer")) {
