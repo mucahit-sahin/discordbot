@@ -1,20 +1,12 @@
 const Discord = require("discord.js");
 const axios = require("axios");
 const dotenv = require("dotenv");
-const { Configuration, OpenAIApi } = require("openai");
 const Client = require("@replit/database");
-
-// OpenAI Chat API'ye bağlanmak için bir istemci oluşturun
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-  organization: process.env.OPENAI_ORG_ID,
-});
-const openai = new OpenAIApi(configuration);
 
 const { isStreamerOnline, checkTwitchStreams } = require("./src/twitch");
 const { writeCurrencies } = require("./src/currency");
 const { writeDiscounts, checkNewDiscount } = require("./src/indirim");
-const { getInstagramLinks } = require("./src/instagram");
+const { getInstagramLinks, getTiktokLinks } = require("./src/videoEmbed");
 const { getHelp } = require("./src/help");
 
 dotenv.config();
@@ -57,6 +49,8 @@ client.on("messageCreate", async (msg) => {
 
   // instagram linklerini alıp, "instagram" yazısını "ddinstagram" olarak değiştirir
   getInstagramLinks(msg);
+  // tiktok linklerini alıp, "tiktok" yazısını "vxtiktok" olarak değiştirir
+  getTiktokLinks(msg);
 
   // twitch streamer kontrolü
   if (msg.content.startsWith("!streamer")) {
