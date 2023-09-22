@@ -1,5 +1,6 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
+const { EmbedBuilder } = require("discord.js");
 
 async function getCurrencies() {
   try {
@@ -22,6 +23,22 @@ async function getCurrencies() {
   }
 }
 
+async function writeCurrencies(msg) {
+  const currencies = await getCurrencies();
+  const embed = new EmbedBuilder()
+    .setTitle("Döviz Kurları (TL)")
+    .addFields(
+      currencies.map((currency) => ({
+        name: currency.name,
+        value: "Alış: " + currency.buying + "\t\t Satış: " + currency.selling,
+      }))
+    )
+    .setFooter({ text: "Kaynak: https://bigpara.hurriyet.com.tr/doviz/" })
+    .setTimestamp(new Date());
+  msg.reply({ embeds: [embed] });
+}
+
 module.exports = {
   getCurrencies,
+  writeCurrencies,
 };

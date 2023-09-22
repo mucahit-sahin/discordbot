@@ -12,10 +12,10 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 const { isStreamerOnline, checkTwitchStreams } = require("./src/twitch");
-const { askGPT } = require("./src/chatgpt");
-const { getCurrencies } = require("./src/currency");
-const { getDiscounts, checkNewDiscount } = require("./src/indirim");
+const { writeCurrencies } = require("./src/currency");
+const { writeDiscounts, checkNewDiscount } = require("./src/indirim");
 const { getInstagramLinks } = require("./src/instagram");
+const { getHelp } = require("./src/help");
 
 dotenv.config();
 
@@ -134,56 +134,14 @@ client.on("messageCreate", async (msg) => {
     });
   }
 
-  // GPT-3 ile sohbet etmek
-  if (msg.content.startsWith("!chat")) {
-    const message = msg.content.split("!chat")[1];
-    if (!message) {
-      msg.reply("Bir mesaj belirtin.");
-      return;
-    }
-    const response = await openai.createChatCompletion({
-      model: "davinci",
-      prompt: message,
-      maxTokens: 1024,
-      n: 1,
-      stop: null,
-      temperature: 0.5,
-    });
-    msg.reply(response.data.choices[0].text);
-  }
-
   // Döviz kurlarını listelemek (Embed ile)
   if (msg.content.startsWith("!döviz")) {
-    const currencies = await getCurrencies();
-    const embed = new Discord.EmbedBuilder()
-      .setTitle("Döviz Kurları (TL)")
-      .addFields(
-        currencies.map((currency) => ({
-          name: currency.name,
-          value: "Alış: " + currency.buying + "\t\t Satış: " + currency.selling,
-        }))
-      )
-      .setFooter({ text: "Kaynak: https://bigpara.hurriyet.com.tr/doviz/" })
-      .setTimestamp(new Date());
-    msg.reply({ embeds: [embed] });
+    writeCurrencies(msg);
   }
 
   // İndirimleri listelemek (Embed ile)
   if (msg.content.startsWith("!indirim")) {
-    const discounts = await getDiscounts();
-    const embed = new Discord.EmbedBuilder()
-      .setTitle("İndirimler")
-      .addFields(
-        discounts.map((discount) => ({
-          name: discount.title,
-          value: `[Linke git](${discount.link})` + " - " + discount.date,
-        }))
-      )
-      .setFooter({
-        text: "Kaynak: https://www.technopat.net/sosyal/bolum/indirim-koesesi.257/",
-      })
-      .setTimestamp(new Date());
-    msg.reply({ embeds: [embed] });
+    writeDiscounts(msg);
   }
 
   // Bildirimlerini açmak veya kapamak, !bildirim bildirim_adı on/off  (sadece benim için)
@@ -232,51 +190,7 @@ client.on("messageCreate", async (msg) => {
 
   // Botta kullanılan komutların listelenip ve komutların açıklanması (Embed mesajı)
   if (msg.content.startsWith("!help")) {
-    const embed = new Discord.EmbedBuilder()
-      .setTitle("Komutlar")
-      .addFields(
-        {
-          name: "!help",
-          value: "Komutları listeler.",
-        },
-        {
-          name: "!indirim",
-          value: "Teknoloji ürünlerindeki indirimleri listeler.",
-        },
-        {
-          name: "!bildirimindirim <on/off>",
-          value: "İndirim bildirimlerini açar veya kapatır.",
-        },
-        {
-          name: "!streamer <username>",
-          value:
-            "Twitch'te yayın yapan bir streamerin yayında olup olmadığını kontrol eder.",
-        },
-        {
-          name: "!addstreamer <username>",
-          value: "Twitch'te yayın yapan bir streameri takip edilenlere ekler.",
-        },
-        {
-          name: "!removestreamer <username>",
-          value:
-            "Twitch'te yayın yapan bir streameri takip edilenlerden siler.",
-        },
-        {
-          name: "!liststreamers",
-          value: "Twitch'te yayın yapan streamerları listeler.",
-        },
-        {
-          name: "!listonline",
-          value: "Twitch'te yayında olan streamerları listeler.",
-        },
-        {
-          name: "!döviz",
-          value: "Döviz kurlarını listeler.",
-        }
-      )
-      .setColor(0x7289da)
-      .setTimestamp(new Date());
-    msg.channel.send({ embeds: [embed] });
+    getHelp(msg);
   }
 });
 

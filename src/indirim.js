@@ -33,6 +33,23 @@ async function getDiscounts() {
   }
 }
 
+async function writeDiscounts(msg) {
+  const discounts = await getDiscounts();
+  const embed = new EmbedBuilder()
+    .setTitle("İndirimler")
+    .addFields(
+      discounts.map((discount) => ({
+        name: discount.title,
+        value: `[Linke git](${discount.link})` + " - " + discount.date,
+      }))
+    )
+    .setFooter({
+      text: "Kaynak: https://www.technopat.net/sosyal/bolum/indirim-koesesi.257/",
+    })
+    .setTimestamp(new Date());
+  msg.reply({ embeds: [embed] });
+}
+
 // yeni bir indirim var mı kontrol et varsa döndür
 async function checkNewDiscount(client, db) {
   try {
@@ -104,5 +121,6 @@ async function checkNewDiscount(client, db) {
 
 module.exports = {
   getDiscounts,
+  writeDiscounts,
   checkNewDiscount,
 };
