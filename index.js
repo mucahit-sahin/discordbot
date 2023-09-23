@@ -6,7 +6,11 @@ const Client = require("@replit/database");
 const { isStreamerOnline, checkTwitchStreams } = require("./src/twitch");
 const { writeCurrencies } = require("./src/currency");
 const { writeDiscounts, checkNewDiscount } = require("./src/indirim");
-const { getInstagramLinks, getTiktokLinks } = require("./src/videoEmbed");
+const {
+  getInstagramLinks,
+  getTiktokLinks,
+  getRedditLinks,
+} = require("./src/videoEmbed");
 const { getHelp } = require("./src/help");
 
 dotenv.config();
@@ -51,6 +55,8 @@ client.on("messageCreate", async (msg) => {
   getInstagramLinks(msg);
   // tiktok linklerini alıp, "tiktok" yazısını "vxtiktok" olarak değiştirir
   getTiktokLinks(msg);
+  // reddit linklerini alıp, "reddit" yazısını "rxddit" olarak değiştirir
+  getRedditLinks(msg);
 
   // twitch streamer kontrolü
   if (msg.content.startsWith("!streamer")) {
