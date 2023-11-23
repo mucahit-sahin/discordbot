@@ -12,7 +12,7 @@ async function getDiscounts() {
     const html = response.data;
     const $ = cheerio.load(html);
     const discounts = [];
-    $(".structItem").each((i, element) => {
+    $(".js-threadList>.structItem").each((i, element) => {
       const discount = {
         title:
           $(".structItem-title a:first-child", element).text() +
@@ -25,8 +25,6 @@ async function getDiscounts() {
       };
       discounts.push(discount);
     });
-    // Birinci elemanı sil
-    discounts.shift();
     return discounts;
   } catch (error) {
     console.error(error);
