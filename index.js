@@ -10,6 +10,7 @@ const {
   getInstagramLinks,
   getTiktokLinks,
   getRedditLinks,
+  getTwitterLinks
 } = require("./src/videoEmbed");
 const { getHelp } = require("./src/help");
 
@@ -57,6 +58,8 @@ client.on("messageCreate", async (msg) => {
   getTiktokLinks(msg);
   // reddit linklerini alıp, "reddit" yazısını "rxddit" olarak değiştirir
   getRedditLinks(msg);
+  // twitter linklerini alıp, "twitter" yazısını "fxtwitter" olarak değiştirir
+  getTwitterLinks(msg);
 
   // twitch streamer kontrolü
   if (msg.content.startsWith("!streamer")) {
