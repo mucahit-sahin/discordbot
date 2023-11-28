@@ -12,7 +12,7 @@ async function getDiscounts() {
     const html = response.data;
     const $ = cheerio.load(html);
     const discounts = [];
-    $(".js-threadList>.structItem").each((i, element) => {
+    $(".js-threadList>.structItem.js-inlineModContainer").each((i, element) => {
       const discount = {
         title:
           $(".structItem-title a:first-child", element).text() +
