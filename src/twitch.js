@@ -31,6 +31,11 @@ async function isStreamerOnline(username) {
 // streamer notifications
 
 async function checkTwitchStreams(client, db) {
+  // Bildirim ayarlarını veritabanından çek
+  const notificationSettings = await db.get("notifications");
+  // Eğer bildirim ayarları yoksa veya bildirimler kapalıysa
+  if (!notificationSettings || !notificationSettings.twitch.value) return;
+
   // Replit veritabanından canlı yayın yapan kullanıcıları alın
   const liveStreamers = new Set(await db.get("liveStreamers")) || new Set();
   // Replit veritabanından takip edilen kullanıcıları alın
