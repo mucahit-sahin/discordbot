@@ -1,4 +1,3 @@
-
 // instagram linklerini alıp, "instagram" yazısını "ddinstagram" olarak değiştirir
 async function getInstagramLinks(message) {
   try {
@@ -14,9 +13,9 @@ async function getInstagramLinks(message) {
       // Eski mesajı siler
       await message.delete();
 
-      // Kullanıcının adını alır ve değiştirilmiş mesajı oluşturur
-      const username = message.author.username;
-      const finalMessage = `${modifiedContent} - Gönderen: @${username}`;
+      // Kullanıcı mention'ı alır ve mention'lı mesajı oluşturur
+      const username = message.author.toString();
+      const finalMessage = `${modifiedContent} - Gönderen: ${username}`;
 
       // Değiştirilmiş mesajı gönderir
       await message.channel.send(finalMessage);
@@ -38,9 +37,9 @@ async function getTiktokLinks(message) {
       // Eski mesajı siler
       await message.delete();
 
-      // Kullanıcının adını alır ve değiştirilmiş mesajı oluşturur
-      const username = message.author.username;
-      const finalMessage = `${modifiedContent} - Gönderen: @${username}`;
+      // Kullanıcı mention'ı alır ve mention'lı mesajı oluşturur
+      const username = message.author.toString();
+      const finalMessage = `${modifiedContent} - Gönderen: ${username}`;
 
       // Değiştirilmiş mesajı gönderir
       await message.channel.send(finalMessage);
@@ -62,9 +61,9 @@ async function getRedditLinks(message) {
       // Eski mesajı siler
       await message.delete();
 
-      // Kullanıcının adını alır ve değiştirilmiş mesajı oluşturur
-      const username = message.author.username;
-      const finalMessage = `${modifiedContent} - Gönderen: @${username}`;
+      // Kullanıcı mention'ı alır ve mention'lı mesajı oluşturur
+      const username = message.author.toString();
+      const finalMessage = `${modifiedContent} - Gönderen: ${username}`;
 
       // Değiştirilmiş mesajı gönderir
       await message.channel.send(finalMessage);
@@ -87,22 +86,25 @@ async function getTwitterLinks(message) {
       // Eski mesajı siler
       await message.delete();
 
-      // Kullanıcının adını alır ve değiştirilmiş mesajı oluşturur
-      const username = message.author.username;
-      const finalMessage = `${modifiedContent} - Gönderen: @${username}`;
+      // Kullanıcı mention'ı alır ve mention'lı mesajı oluşturur
+      const username = message.author.toString();
+      const finalMessage = `${modifiedContent} - Gönderen: ${username}`;
 
       // Değiştirilmiş mesajı gönderir
       await message.channel.send(finalMessage);
     }
-    if (message.content.includes("x.com") && !message.content.includes("fixupx")) {
+    if (
+      message.content.includes("x.com") &&
+      !message.content.includes("fixupx")
+    ) {
       const modifiedContent = message.content.replace(/x/g, "fixupx");
 
       // Eski mesajı siler
       await message.delete();
 
-      // Kullanıcının adını alır ve değiştirilmiş mesajı oluşturur
-      const username = message.author.username;
-      const finalMessage = `${modifiedContent} - Gönderen: @${username}`;
+      // Kullanıcı mention'ı alır ve mention'lı mesajı oluşturur
+      const username = message.author.toString();
+      const finalMessage = `${modifiedContent} - Gönderen: ${username}`;
 
       // Değiştirilmiş mesajı gönderir
       await message.channel.send(finalMessage);
