@@ -1,6 +1,7 @@
 const axios = require("axios");
 const cheerio = require("cheerio");
 const { EmbedBuilder } = require("discord.js");
+var localStorage = require("../localStorage");
 
 const url =
   "https://www.technopat.net/sosyal/bolum/indirim-koesesi.257/?order=post_date&direction=desc";
@@ -49,10 +50,10 @@ async function writeDiscounts(msg) {
 }
 
 // yeni bir indirim var mı kontrol et varsa döndür
-async function checkNewDiscount(client, db) {
+async function checkNewDiscount(client) {
   try {
-    // Bildirim ayarlarını veritabanından çek
-    const notificationSettings = await db.get("notifications");
+    // Bildirim ayarlarını localStorage'dan çek
+    const notificationSettings = localStorage.getItem("notifications");
 
     // Eğer bildirim ayarları yoksa veya bildirimler kapalıysa
     if (!notificationSettings || !notificationSettings.indirim.value) return;
@@ -60,26 +61,26 @@ async function checkNewDiscount(client, db) {
     // İndirimleri çek
     const discounts = await getDiscounts();
 
-    // Son indirimi Replit veritabanından çek
-    const lastDiscount = await db.get("lastDiscount");
+    // Son indirimi LocalStorage'dan çek
+    const lastDiscount = localStorage.getItem("lastDiscount");
 
     // Eğer veritabanında indirim yoksa veritabanına kaydet
     if (!lastDiscount) {
-      await db.set("lastDiscount", discounts[0]);
+      localStorage.setItem("lastDiscount", discounts[0]);
       return;
     }
 
     // Eğer veritabanındaki indirim, indirimlerde yoksa
     if (!discounts.find((discount) => discount.link === lastDiscount.link)) {
       // Veritabanındaki indirimi sil
-      await db.delete("lastDiscount");
+      localStorage.removeItem("lastDiscount");
       return;
     }
 
     // Son indirim ile yeni indirimi karşılaştır
     if (lastDiscount.link !== discounts[0].link) {
       // Eğer yeni indirim varsa veritabanına kaydet
-      await db.set("lastDiscount", discounts[0]);
+      localStorage.setItem("lastDiscount", discounts[0]);
 
       // Yeni eklenen indirimleri döndür (yani baştan son indirime kadar olan indirimler )
       const newDiscounts = [];

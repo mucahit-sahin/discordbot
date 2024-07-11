@@ -1,7 +1,8 @@
 const Discord = require("discord.js");
 const axios = require("axios");
 const dotenv = require("dotenv");
-const Client = require("@replit/database");
+//const Client = require("@replit/database");
+var localStorage = require("./localStorage");
 
 const { isStreamerOnline, checkTwitchStreams } = require("./src/twitch");
 const { writeCurrencies } = require("./src/currency");
@@ -10,15 +11,12 @@ const {
   getInstagramLinks,
   getTiktokLinks,
   getRedditLinks,
-  getTwitterLinks
+  getTwitterLinks,
 } = require("./src/videoEmbed");
 const { getHelp } = require("./src/help");
 const { setNotification } = require("./src/notifications");
 
 dotenv.config();
-
-// Replit veritabanı istemcisini oluşturun
-const db = new Client();
 
 // Discord bot istemcisini oluşturun
 const client = new Discord.Client({
@@ -34,9 +32,8 @@ client.on("ready", () => {
 
   // Belirli aralıklarla Twitch API'ye istek göndererek yayınları kontrol etmek için bir zamanlayıcı ayarlayın
   setInterval(() => {
-    requestWebSite();
-    checkTwitchStreams(client, db);
-    checkNewDiscount(client, db);
+    //checkTwitchStreams(client);
+    checkNewDiscount(client);
   }, 60000); // Her dakika kontrol etmek için 60000 milisaniye (60 saniye) kullanıyoruz
 });
 
@@ -85,15 +82,15 @@ client.on("messageCreate", async (msg) => {
       msg.reply("Bir kullanıcı adı belirtin.");
       return;
     }
-    db.get("twitchStreamers").then((streamers) => {
-      if (!streamers) {
-        streamers = [];
-      }
-      streamers.push(username);
-      db.set("twitchStreamers", streamers).then(() => {
-        msg.reply("Streamer başarıyla eklendi.");
-      });
-    });
+
+    // LocalStorage kullanarak streamer ekleme
+    var streamers = localStorage.getItem("twitchStreamers");
+    if (!streamers) {
+      streamers = [];
+    }
+    streamers.push(username);
+    localStorage.setItem("twitchStreamers", streamers);
+    msg.reply("Streamer başarıyla eklendi.");
   }
 
   // twitch takip edilenlerden streamer silmek (sadece benim için)
@@ -107,35 +104,35 @@ client.on("messageCreate", async (msg) => {
       msg.reply("Bir kullanıcı adı belirtin.");
       return;
     }
-    db.get("twitchStreamers").then((streamers) => {
-      if (!streamers) {
-        streamers = [];
-      }
-      streamers = streamers.filter((streamer) => streamer !== username);
-      db.set("twitchStreamers", streamers).then(() => {
-        msg.reply("Streamer başarıyla silindi.");
-      });
-    });
+
+    // LocalStorage kullanarak streamer silme
+    var streamers = localStorage.getItem("twitchStreamers");
+    if (!streamers) {
+      streamers = [];
+    }
+    streamers = streamers.filter((streamer) => streamer !== username);
+    localStorage.setItem("twitchStreamers", streamers);
+    msg.reply("Streamer başarıyla silindi.");
   }
 
   // twitch takip edilenleri listelemek (herkes için)
   if (msg.content.startsWith("!liststreamers")) {
-    db.get("twitchStreamers").then((streamers) => {
-      if (!streamers) {
-        streamers = [];
-      }
-      msg.reply(`Takip edilen streamerlar: ${streamers.join(", ")}`);
-    });
+    // LocalStorage kullanarak streamer listeleme
+    var streamers = localStorage.getItem("twitchStreamers");
+    if (!streamers) {
+      streamers = [];
+    }
+    msg.reply(`Takip edilen streamerlar: ${streamers.join(", ")}`);
   }
 
   // Yayında olan streamerları listelemek (herkes için)
   if (msg.content.startsWith("!listonline")) {
-    db.get("liveStreamers").then((streamers) => {
-      if (!streamers) {
-        streamers = [];
-      }
-      msg.reply(`Yayında olan streamerlar: ${streamers.join(", ")}`);
-    });
+    // LocalStorage kullanarak yayında olan streamerları listeleme
+    var streamers = localStorage.getItem("liveStreamers");
+    if (!streamers) {
+      streamers = [];
+    }
+    msg.reply(`Yayında olan streamerlar: ${streamers.join(", ")}`);
   }
 
   // Döviz kurlarını listelemek (Embed ile)
@@ -150,7 +147,7 @@ client.on("messageCreate", async (msg) => {
 
   // Bildirimlerini açmak veya kapamak, !bildirim bildirim_adı on/off  (sadece benim için)
   if (msg.content.startsWith("!bildirim")) {
-    setNotification(msg, db);
+    setNotification(msg);
   }
 
   // Botta kullanılan komutların listelenip ve komutların açıklanması (Embed mesajı)
@@ -160,8 +157,3 @@ client.on("messageCreate", async (msg) => {
 });
 
 client.login(process.env.TOKEN); // Discord bot tokenınızı buraya girin
-
-async function requestWebSite(url) {
-  const response = await axios.get("https://discord-bot--scaletta865.repl.co/");
-  return response.data;
-}

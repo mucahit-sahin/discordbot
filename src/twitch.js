@@ -1,4 +1,5 @@
 const axios = require("axios");
+var localStorage = require('../localStorage');
 
 // streamer control
 async function isStreamerOnline(username) {
@@ -30,7 +31,8 @@ async function isStreamerOnline(username) {
 
 // streamer notifications
 
-async function checkTwitchStreams(client, db) {
+async function checkTwitchStreams(client) {
+  /*
   // Bildirim ayarlarını veritabanından çek
   const notificationSettings = await db.get("notifications");
   // Eğer bildirim ayarları yoksa veya bildirimler kapalıysa
@@ -39,7 +41,17 @@ async function checkTwitchStreams(client, db) {
   // Replit veritabanından canlı yayın yapan kullanıcıları alın
   const liveStreamers = new Set(await db.get("liveStreamers")) || new Set();
   // Replit veritabanından takip edilen kullanıcıları alın
-  const twitchStreamers = Array.from(await db.get("twitchStreamers")) || [];
+  const twitchStreamers = Array.from(await db.get("twitchStreamers")) || [];*/
+
+  // Bildirim ayarlarını localStorage'dan çek
+  const notificationSettings = localStorage.getItem("notifications");
+  // Eğer bildirim ayarları yoksa veya bildirimler kapalıysa
+  if (!notificationSettings || !notificationSettings.twitch.value) return;
+
+  // LocalStorage'dan canlı yayın yapan kullanıcıları alın
+  const liveStreamers = new Set(localStorage.getItem("liveStreamers")) || new Set();
+  // LocalStorage'dan takip edilen kullanıcıları alın
+  const twitchStreamers = Array.from(localStorage.getItem("twitchStreamers")) || [];
 
   for (const streamer of twitchStreamers) {
     try {
@@ -69,8 +81,11 @@ async function checkTwitchStreams(client, db) {
         // Yayın kapalı ise setten silin
         liveStreamers.delete(streamer);
       }
+      /*
       // Veritabanını güncelleyin
-      await db.set("liveStreamers", [...liveStreamers]);
+      await db.set("liveStreamers", [...liveStreamers]);*/
+      // LocalStorage güncelleyin
+      localStorage.setItem("liveStreamers", [...liveStreamers]);
     } catch (error) {
       console.error(`Twitch API hatası: ${error.message}`);
     }
