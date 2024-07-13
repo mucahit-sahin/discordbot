@@ -41,8 +41,9 @@ client.on("messageCreate", async (msg) => {
   if (msg.author.bot) return;
 
   // selama cevap verme
-  let selam = ["selam ", "sa ", "selamın aleyküm", "selamın aleykum"];
-  if (selam.some((word) => msg.content.toLowerCase().includes(word))) {
+
+  let selam = ["selam", "sa", "selamın aleyküm", "selamın aleykum"];
+  if (selam.some((word) => msg.content.toLowerCase() === word)) {
     if (msg.author.id === process.env.ME_ID) {
       msg.reply(`as Aşkım benim. Seni çok seviyorum :heart:. Hizmetindeyim.`);
     } else {
