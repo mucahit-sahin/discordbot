@@ -114,9 +114,14 @@ async function getTwitterLinks(message) {
   }
 }
 
+// tüm fonksiyonları tek bir fonksiyon içinde topladım
+async function getLinks(message) {
+  getInstagramLinks(message);
+  getTiktokLinks(message);
+  getRedditLinks(message);
+  getTwitterLinks(message);
+}
+
 module.exports = {
-  getInstagramLinks,
-  getTiktokLinks,
-  getRedditLinks,
-  getTwitterLinks,
+  getLinks,
 };

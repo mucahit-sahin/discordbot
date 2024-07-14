@@ -7,12 +7,7 @@ var localStorage = require("./localStorage");
 const { isStreamerOnline, checkTwitchStreams } = require("./src/twitch");
 const { writeCurrencies } = require("./src/currency");
 const { writeDiscounts, checkNewDiscount } = require("./src/indirim");
-const {
-  getInstagramLinks,
-  getTiktokLinks,
-  getRedditLinks,
-  getTwitterLinks,
-} = require("./src/videoEmbed");
+const { getLinks } = require("./src/videoEmbed");
 const { getHelp } = require("./src/help");
 const { setNotification } = require("./src/notifications");
 
@@ -51,14 +46,8 @@ client.on("messageCreate", async (msg) => {
     }
   }
 
-  // instagram linklerini alıp, "instagram" yazısını "ddinstagram" olarak değiştirir
-  getInstagramLinks(msg);
-  // tiktok linklerini alıp, "tiktok" yazısını "vxtiktok" olarak değiştirir
-  getTiktokLinks(msg);
-  // reddit linklerini alıp, "reddit" yazısını "rxddit" olarak değiştirir
-  getRedditLinks(msg);
-  // twitter linklerini alıp, "twitter" yazısını "fxtwitter" olarak değiştirir
-  getTwitterLinks(msg);
+  // linkleri alıp, embed mesajı oluşturur
+  getLinks(msg);
 
   // twitch streamer kontrolü
   if (msg.content.startsWith("!streamer")) {
