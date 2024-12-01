@@ -1,3 +1,5 @@
+const localStorage = require("../localStorage");
+
 // instagram linklerini alıp, "instagram" yazısını "ddinstagram" olarak değiştirir
 async function getInstagramLinks(message) {
   try {
@@ -116,12 +118,38 @@ async function getTwitterLinks(message) {
 
 // tüm fonksiyonları tek bir fonksiyon içinde topladım
 async function getLinks(message) {
+  // Linkleri güncelleme açık mı kontrol et
+  const updateLinks = localStorage.getItem("updateLinks");
+  if (!updateLinks) return;
+  // Linkleri al
   getInstagramLinks(message);
   getTiktokLinks(message);
   getRedditLinks(message);
   getTwitterLinks(message);
 }
 
+// Linkleri güncelleme açık yada kapalı yapma, komut: !embedLinks true/false
+async function updateLinks(message) {
+  try {
+    // Komutu ayır
+    const args = message.content.split(" ");
+    // Komutu kontrol et
+    if (args[0] === "!embedLinks") {
+      // Komutu kontrol et
+      if (args[1] === "true") {
+        localStorage.setItem("updateLinks", true);
+        await message.channel.send("Link güncelleme açık.");
+      } else if (args[1] === "false") {
+        localStorage.setItem("updateLinks", false);
+        await message.channel.send("Link güncelleme kapalı.");
+      }
+    }
+  } catch (error) {
+    console.log(error.message);
+  }
+}
+
 module.exports = {
   getLinks,
+  updateLinks,
 };

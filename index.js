@@ -7,7 +7,7 @@ var localStorage = require("./localStorage");
 const { isStreamerOnline, checkTwitchStreams } = require("./src/twitch");
 const { writeCurrencies } = require("./src/currency");
 const { writeDiscounts, checkNewDiscount } = require("./src/indirim");
-const { getLinks } = require("./src/videoEmbed");
+const { getLinks, updateLinks } = require("./src/videoEmbed");
 const { getHelp } = require("./src/help");
 const { setNotification } = require("./src/notifications");
 
@@ -46,6 +46,8 @@ client.on("messageCreate", async (msg) => {
     }
   }
 
+  // linkleri alıp, embed mesajı oluşturmayı açık veya kapalı yapar
+  updateLinks(msg);
   // linkleri alıp, embed mesajı oluşturur
   getLinks(msg);
 
